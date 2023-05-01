@@ -27,7 +27,7 @@ export default class QuailPlugin extends Plugin {
 
 		const actions = getActions(this.app, this.settings);
 		for (let ix = 0; ix < actions.length; ix++) {
-			const action = actions[ix];
+			const action:any = actions[ix];
 			this.addCommand(action)
 		}
 
