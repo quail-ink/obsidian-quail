@@ -31,13 +31,13 @@ export default {
 
   getActiveFileContent: async function (app: App, editor: Editor) {
     const file = app.workspace.getActiveFile();
-    let text = editor.getDoc().getValue();
+    const text = editor.getDoc().getValue();
     let body = text
     if (file) {
       console.log("file", file.path)
-      let fmc = app.metadataCache.getFileCache(file)?.frontmatter;
+      const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
       if (fmc) {
-        let end = fmc.position.end.line + 1 // accont for ending ---
+        const end = fmc.position.end.line + 1 // accont for ending ---
         body = text.split("\n").slice(end).join("\n")
         console.log("fmc", fmc)
       }
