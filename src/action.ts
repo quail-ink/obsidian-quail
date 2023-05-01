@@ -3,12 +3,13 @@ import { MessageModal, PublishResultModal } from './modal';
 import util from './util';
 import { Client } from './api';
 import { QuailPluginSettings } from './interface';
+import dayjs from "dayjs";
 
 export function getActions(app: App, settings: QuailPluginSettings) {
   return [
   {
     id: 'quail-publish',
-    name: 'Publish at Quail.ink',
+    name: 'Publish',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
       if (err != null) {
@@ -37,7 +38,7 @@ export function getActions(app: App, settings: QuailPluginSettings) {
 
       const newContent = util.replaceImageUrls(content, oldUrls, newUrls)
 
-      let resp = null;
+      let resp:any = null;
       try {
         resp = await client.createOrPublish(settings.listID, title, newContent, frontmatter, images)
       } catch (e) {
@@ -59,7 +60,7 @@ export function getActions(app: App, settings: QuailPluginSettings) {
 
   {
     id: 'quail-unpublish',
-    name: 'Unpublish from Quail.ink',
+    name: 'Unpublish',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, err } = await util.getActiveFileContent(app, editor);
       if (err != null) {
@@ -74,7 +75,7 @@ export function getActions(app: App, settings: QuailPluginSettings) {
 
   {
     id: 'quail-deliver',
-    name: 'Deliver via Quail.ink',
+    name: 'Deliver',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, err } = await util.getActiveFileContent(app, editor);
       if (err != null) {
@@ -91,5 +92,21 @@ export function getActions(app: App, settings: QuailPluginSettings) {
         return;
       }
     }
-  }]
+  },
+
+  {
+    id: 'quail-insert-frontmatter',
+    name: 'Insert Frontmatter',
+    editorCallback: async (editor: Editor, view: MarkdownView) => {
+      const now = dayjs();
+      editor.replaceSelection(`---
+slug: YOUR_NOTE_SLUG
+summary: YOUR_NOTE_SUMMARY
+tags: YOUR_NOTE_TAGS
+cover_image_url: YOUR_NOTE_COVER_IMAGE_URL
+date: ${now.format('YYYY-MM-DD HH:mm')}
+---`);
+    }
+  }
+  ]
 };

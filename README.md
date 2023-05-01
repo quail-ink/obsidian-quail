@@ -13,7 +13,17 @@ Clone the plugin.
 
 ```bash
 git clone git@github.com:lyricat/obsidian-quail.git
+cd obsidian-quail
 ```
+
+Build the plugin.
+
+```bash
+npm install
+npm run build
+```
+
+Copy the plugin to your vault.
 
 ```
 mkdir $VAULT_PATH/.obsidian/plugins/obsidian-quail

@@ -3,10 +3,15 @@ import { App, Editor } from 'obsidian';
 export default {
   getImagePaths : function (markdownContent: string) {
     const imageRegex = /!\[(.*?)\]\((.*?)\)/g; // matches markdown image syntax
-    const matches = [];
-    let match;
+    const matches:any = [];
+    let match:any = null;
     while ((match = imageRegex.exec(markdownContent))) {
-      matches.push(match[2]); // add second capture group (the image path)
+      if (match && match.length > 2) {
+        const item = match[2];
+        if (!item.startsWith("https://") && !item.startsWith("http://")) {
+          matches.push(item); // add second capture group (the image path)
+        }
+      }
     }
     return matches;
   },
@@ -60,7 +65,7 @@ export default {
         }
       }
 
-      let coverImage = null;
+      let coverImage:any = null;
       const files = app.vault.getFiles();
       const images:Array<any> = [];
       for (let ix = 0; ix < files.length; ix++) {
