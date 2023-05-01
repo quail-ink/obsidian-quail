@@ -30,8 +30,8 @@ export function getActions(app: App, settings: QuailPluginSettings) {
         }
       }
 
-      if (frontmatter.cover_image) {
-        const resp = await client.uploadAttachment(frontmatter.cover_image);
+      if (frontmatter?.cover_image) {
+        const resp = await client.uploadAttachment(frontmatter?.cover_image);
         frontmatter.cover_image_url = resp.view_url;
       }
 
