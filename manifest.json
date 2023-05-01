@@ -1,0 +1,11 @@
+{
+	"id": "obsidian-quail-plugin",
+	"name": "Quail Plugin",
+	"version": "1.0.0",
+	"minAppVersion": "0.0.1",
+	"description": "This is a quail plugin for Obsidian.",
+	"author": "Lyric",
+	"authorUrl": "https://quail.ink",
+	"fundingUrl": "https://quail.ink",
+	"isDesktopOnly": false
+}
