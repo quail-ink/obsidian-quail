@@ -1,8 +1,5 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { MessageModal, PublishResultModal } from './src/modal';
-import util from './src/util';
+import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { getActions } from './src/action';
-import { Client } from './src/api';
 
 interface QuailPluginSettings {
 	apikey: string;
@@ -33,74 +30,6 @@ export default class QuailPlugin extends Plugin {
 			const action = actions[ix];
 			this.addCommand(action)
 		}
-		// This adds a simple command that can be triggered anywhere
-		// this.addCommand({
-		// 	id: 'quail-publish',
-		// 	name: 'Publish at Quail.ink',
-		// 	editorCallback: async (editor: Editor, view: MarkdownView) => {
-		// 		const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
-		// 		if (err != null) {
-		// 			new MessageModal(this.app, err).open();
-		// 			return;
-		// 		}
-
-		// 		const client = new Client(this.settings.apikey, this.settings.apibase);
-
-		// 		let resp = null;
-		// 		try {
-		// 			resp = await client.createOrPublish(this.settings.listID, title, content, frontmatter, images)
-		// 		} catch (e) {
-		// 			const msg = `error: ${e}`;
-		// 			new MessageModal(this.app, msg).open();
-		// 			return;
-		// 		}
-
-		// 		const slug = resp.slug;
-		// 		if (slug) {
-		// 			const viewUrl = `${this.settings.host}/${this.settings.listID}/p/${slug}`;
-		// 			new PublishResultModal(this.app, client, this.settings.listID, slug, viewUrl).open();
-		// 		} else {
-		// 			new MessageModal(this.app, "resp.slug is empty.").open();
-		// 			return;
-		// 		}
-		// 	}
-		// });
-
-		// this.addCommand({
-		// 	id: 'quail-unpublish',
-		// 	name: 'Unpublish from Quail.ink',
-		// 	editorCallback: async (editor: Editor, view: MarkdownView) => {
-		// 		const { frontmatter, err } = await util.getActiveFileContent(app, editor);
-		// 		if (err != null) {
-		// 			new MessageModal(this.app, err).open();
-		// 			return;
-		// 		}
-
-		// 		const client = new Client(this.settings.apikey, this.settings.apibase);
-		// 		await client.unpublish(this.settings.listID, frontmatter?.slug)
-		// 	}
-		// });
-
-		// this.addCommand({
-		// 	id: 'quail-deliver',
-		// 	name: 'Deliver via Quail.ink',
-		// 	editorCallback: async (editor: Editor, view: MarkdownView) => {
-		// 		const { frontmatter, err } = await util.getActiveFileContent(app, editor);
-		// 		if (err != null) {
-		// 			new MessageModal(this.app, err).open();
-		// 			return;
-		// 		}
-
-		// 		const client = new Client(this.settings.apikey, this.settings.apibase);
-		// 		try {
-		// 			await client.deliver(this.settings.listID, frontmatter?.slug)
-		// 		} catch (e) {
-		// 			console.log("deliver error: ", e)
-		// 			new MessageModal(this.app, e.toString()).open();
-		// 			return;
-		// 		}
-		// 	}
-		// });
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new QuailSettingTab(this.app, this));
