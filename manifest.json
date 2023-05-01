@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-quail-plugin",
 	"name": "Quail Plugin",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "0.0.1",
 	"description": "This is a quail plugin for Obsidian.",
 	"author": "Lyric",
