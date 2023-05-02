@@ -142,7 +142,7 @@ class Client{
   }
 
   async unpublish (listID: any, slug: string): Promise<any> {
-    const resp = await this.publishPost(listID, slug);
+    const resp = await this.unpublishPost(listID, slug);
     if (resp.code) {
       throw new Error(resp.msg);
     }

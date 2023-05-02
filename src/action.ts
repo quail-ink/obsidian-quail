@@ -16,7 +16,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
         return;
       }
 
-      const { verified, reason } = util.verifyFrontmatter(frontmatter)
+      const { verified, reason } = fm.verifyFrontmatter(frontmatter)
       if (!verified) {
         new MessageModal(app, {title: "Failed to verify the metadata",  message: reason }).open();
         return;
@@ -152,6 +152,11 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
           console.log("replace frontmatter: ", frontmatter);
           try {
             fmc = await fm.suggestFrontmatter(client, title, content, []);
+            const pos = frontmatter.position;
+            editor.setSelection(
+              { line: (pos.start?.line as number), ch: (pos.start?.col as number) },
+              { line: (pos.end?.line as number), ch: (frontmatter?.end?.col as number) })
+            editor.replaceSelection(fmc);
           } catch (e) {
             loadingModal.close();
             new ErrorModal(app, e).open();
