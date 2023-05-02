@@ -65,6 +65,11 @@ class Client{
       body: payload || null,
     });
     const json = await resp.json();
+
+    if (json.code) {
+      throw new Error(`code ${json.code}: ${json.msg}`);
+    }
+
     return json.data || { code: json?.code, message: json?.message };
   }
 
@@ -116,9 +121,6 @@ class Client{
     }
     // @TODO handle images
     const resp = await this.createPost(listID, payload);
-    if (resp.code) {
-      throw new Error(resp.msg);
-    }
     return resp;
   }
 

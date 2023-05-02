@@ -1,7 +1,6 @@
 import { App, Editor, MarkdownView, Notice } from 'obsidian';
-import { LoadingModal, MessageModal, PublishResultModal } from './modal';
+import { LoadingModal, MessageModal, ErrorModal, PublishResultModal } from './modal';
 import util from './util';
-import { Client } from './api';
 import { QuailPluginSettings } from './interface';
 import fm from "./frontmatter";
 
@@ -13,9 +12,18 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
       if (err != null) {
-        new MessageModal(app, err).open();
+        new MessageModal(app, { message: err.toString() }).open();
         return;
       }
+
+      const { verified, reason } = util.verifyFrontmatter(frontmatter)
+      if (!verified) {
+        new MessageModal(app, {title: "Failed to verify the metadata",  message: reason }).open();
+        return;
+      }
+
+      const loadingModal = new LoadingModal(app)
+      loadingModal.open();
 
       // upload images and replace
       const oldUrls:string[] = [];
@@ -40,9 +48,11 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
       try {
         resp = await client.createOrPublish(settings.listID, title, newContent, frontmatter, images)
       } catch (e) {
-        const msg = `error: ${e}`;
-        new MessageModal(app, msg).open();
+        new ErrorModal(app, e).open();
+        loadingModal.close();
         return;
+      } finally {
+        loadingModal.close();
       }
 
       const slug = resp.slug;
@@ -50,7 +60,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
         const viewUrl = `${settings.host}/${settings.listID}/p/${slug}`;
         new PublishResultModal(app, client, settings.listID, slug, viewUrl).open();
       } else {
-        new MessageModal(app, "resp.slug is empty.").open();
+        new MessageModal(app, { message: "resp.slug is empty." }).open();
         return;
       }
     }
@@ -62,12 +72,25 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, err } = await util.getActiveFileContent(app, editor);
       if (err != null) {
-        new MessageModal(app, err).open();
+        new ErrorModal(app, new Error(err)).open();
         return;
       }
 
-      const client = new Client(settings.apikey, settings.apibase);
-      await client.unpublish(settings.listID, frontmatter?.slug)
+      const loadingModal = new LoadingModal(app)
+      loadingModal.open();
+
+      try {
+        await client.unpublish(settings.listID, frontmatter?.slug);
+        new MessageModal(app, {
+          title: "Unpublish",
+          message: "This post has removed from published list."
+        }).open();
+      } catch (e) {
+        loadingModal.close();
+        new ErrorModal(app, e).open();
+      } finally {
+        loadingModal.close();
+      }
     }
   },
 
@@ -77,17 +100,26 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, err } = await util.getActiveFileContent(app, editor);
       if (err != null) {
-        new MessageModal(app, err).open();
+        new MessageModal(app, { message: err.toString() }).open();
         return;
       }
 
-      const client = new Client(settings.apikey, settings.apibase);
+      const loadingModal = new LoadingModal(app)
+      loadingModal.open();
+
       try {
         await client.deliver(settings.listID, frontmatter?.slug)
+        new MessageModal(app, {
+          title: "Delivery Requested",
+          message: "This post has been added into the delivery queue. It may take a few minutes to send out."
+        }).open();
       } catch (e) {
+        loadingModal.close();
         console.log("deliver error: ", e)
-        new MessageModal(app, e.toString()).open();
+        new ErrorModal(app, e).open();
         return;
+      } finally {
+        loadingModal.close();
       }
     }
   },
@@ -99,17 +131,33 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
       const { frontmatter, content } = util.getActiveFileFrontmatter(app, editor);
       const file = app.workspace.getActiveFile();
       if (file) {
-        const modal = new LoadingModal(app)
+        const loadingModal = new LoadingModal(app)
+        loadingModal.open();
+
         const title = file.name.replace(/\.md$/, '');
+        let fmc:any = null;
         if (frontmatter === null || Object.values(frontmatter).length === 0) {
-          editor.setCursor({ line: 0, ch: 0 });
-          modal.open();
-          const fmc = await fm.suggestFrontmatter(client, title, content, [])
-          editor.replaceSelection(fmc);
-          modal.close();
+          try {
+            fmc = await fm.suggestFrontmatter(client, title, content, [])
+            editor.setCursor({ line: 0, ch: 0 });
+            editor.replaceSelection(fmc);
+          } catch (e) {
+            loadingModal.close();
+            new ErrorModal(app, e).open();
+          } finally {
+            loadingModal.close();
+          }
         } else {
           // @TODO replace frontmatter
-          console.log("replace frontmatter: ", frontmatter)
+          console.log("replace frontmatter: ", frontmatter);
+          try {
+            fmc = await fm.suggestFrontmatter(client, title, content, []);
+          } catch (e) {
+            loadingModal.close();
+            new ErrorModal(app, e).open();
+          } finally {
+            loadingModal.close();
+          }
         }
       }
     }
@@ -127,8 +175,9 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
           const fmc = await fm.emptyFrontmatter()
           editor.replaceSelection(fmc);
         } else {
-          // @TODO replace frontmatter
-          console.log("replace frontmatter: ", frontmatter)
+          console.log("current frontmatter: ", frontmatter)
+          const modal = new MessageModal(app, { title: "Metadata already exists", message: "Please edit manually or use AI to generate it" })
+          modal.open();
         }
       }
     }
