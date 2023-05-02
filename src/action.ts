@@ -1,11 +1,11 @@
 import { App, Editor, MarkdownView, Notice } from 'obsidian';
-import { MessageModal, PublishResultModal } from './modal';
+import { LoadingModal, MessageModal, PublishResultModal } from './modal';
 import util from './util';
 import { Client } from './api';
 import { QuailPluginSettings } from './interface';
-import dayjs from "dayjs";
+import fm from "./frontmatter";
 
-export function getActions(app: App, settings: QuailPluginSettings) {
+export function getActions(client: any, app: App, settings: QuailPluginSettings) {
   return [
   {
     id: 'quail-publish',
@@ -16,8 +16,6 @@ export function getActions(app: App, settings: QuailPluginSettings) {
         new MessageModal(app, err).open();
         return;
       }
-
-      const client = new Client(settings.apikey, settings.apibase);
 
       // upload images and replace
       const oldUrls:string[] = [];
@@ -95,18 +93,46 @@ export function getActions(app: App, settings: QuailPluginSettings) {
   },
 
   {
-    id: 'quail-insert-frontmatter',
-    name: 'Insert Frontmatter',
+    id: 'quail-ai-gen-metadata',
+    name: 'AI Generate Metadata',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const now = dayjs();
-      editor.replaceSelection(`---
-slug: YOUR_NOTE_SLUG
-summary: YOUR_NOTE_SUMMARY
-tags: YOUR_NOTE_TAGS
-cover_image_url: YOUR_NOTE_COVER_IMAGE_URL
-date: ${now.format('YYYY-MM-DD HH:mm')}
----`);
+      const { frontmatter, content } = util.getActiveFileFrontmatter(app, editor);
+      const file = app.workspace.getActiveFile();
+      if (file) {
+        const modal = new LoadingModal(app)
+        const title = file.name.replace(/\.md$/, '');
+        if (frontmatter === null || Object.values(frontmatter).length === 0) {
+          editor.setCursor({ line: 0, ch: 0 });
+          modal.open();
+          const fmc = await fm.suggestFrontmatter(client, title, content, [])
+          editor.replaceSelection(fmc);
+          modal.close();
+        } else {
+          // @TODO replace frontmatter
+          console.log("replace frontmatter: ", frontmatter)
+        }
+      }
     }
-  }
+  },
+
+  {
+    id: 'quail-insert-metadata',
+    name: 'Insert Metadata Template',
+    editorCallback: async (editor: Editor, view: MarkdownView) => {
+      const { frontmatter } = util.getActiveFileFrontmatter(app, editor);
+      const file = app.workspace.getActiveFile();
+      if (file) {
+        if (frontmatter === null || Object.values(frontmatter).length === 0) {
+          editor.setCursor({ line: 0, ch: 0 });
+          const fmc = await fm.emptyFrontmatter()
+          editor.replaceSelection(fmc);
+        } else {
+          // @TODO replace frontmatter
+          console.log("replace frontmatter: ", frontmatter)
+        }
+      }
+    }
+  },
+
   ]
-};
+}

@@ -64,7 +64,8 @@ class Client{
       headers,
       body: payload || null,
     });
-    return resp.json();
+    const json = await resp.json();
+    return json.data || { code: json?.code, message: json?.message };
   }
 
   async requestFormData (url: string, body: any): Promise<any> {
@@ -76,7 +77,8 @@ class Client{
       },
       body: body || null,
     });
-    return resp.json();
+    const json = await resp.json();
+    return json.data || { code: json?.code, message: json?.message };
   }
 
   async createPost (listID: any, payload:any): Promise<any> {
@@ -95,6 +97,12 @@ class Client{
     return this.request(`/lists/${listID}/posts/${slug}/deliver`, 'PUT', null)
   }
 
+  async generateFrontmatter (title: string, content: string): Promise<any> {
+    return this.request(`/composer/frontmatter`, 'POST', {
+      title, content
+    });
+  }
+
   async createOrPublish (listID: any, title: string, text: string, frontmatter: any, images: string[]): Promise<any> {
     const fmt = formalizeFrontmatter(frontmatter, text);
     const payload = {
@@ -111,7 +119,7 @@ class Client{
     if (resp.code) {
       throw new Error(resp.msg);
     }
-    return resp.data;
+    return resp;
   }
 
   async uploadAttachment(img: any): Promise<any>  {
@@ -120,7 +128,7 @@ class Client{
     formData.append('file', new Blob([picArray], { type: img.mimeType }), img.name);
     console.log("uploading", img.name, img.mimeType);
     const resp = await this.requestFormData(`/attachments`, formData);
-    return resp.data;
+    return resp;
   }
 
   async publish (listID: any, slug: string): Promise<any> {
@@ -128,7 +136,7 @@ class Client{
     if (resp.code) {
       throw new Error(resp.msg);
     }
-    return resp.data;
+    return resp;
   }
 
   async unpublish (listID: any, slug: string): Promise<any> {
@@ -136,7 +144,7 @@ class Client{
     if (resp.code) {
       throw new Error(resp.msg);
     }
-    return resp.data;
+    return resp;
   }
 
   async deliver (listID: any, slug: string): Promise<any> {
@@ -144,7 +152,7 @@ class Client{
     if (resp.code) {
       throw new Error(resp.msg);
     }
-    return resp.data;
+    return resp;
   }
 }
 

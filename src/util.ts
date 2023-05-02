@@ -1,15 +1,16 @@
 import { App, Editor } from 'obsidian';
+// import { QuailImageItem } from './interface';
 
 export default {
   getImagePaths : function (markdownContent: string) {
     const imageRegex = /!\[(.*?)\]\((.*?)\)/g; // matches markdown image syntax
-    const matches:any = [];
-    let match:any = null;
+    const matches:string[] = [];
+    let match:RegExpExecArray|null = null;
     while ((match = imageRegex.exec(markdownContent))) {
       if (match && match.length > 2) {
         const item = match[2];
         if (!item.startsWith("https://") && !item.startsWith("http://")) {
-          matches.push(item); // add second capture group (the image path)
+          matches.push(item);
         }
       }
     }
@@ -34,27 +35,56 @@ export default {
     return mimeType;
   },
 
-  getActiveFileContent: async function (app: App, editor: Editor) {
+  getActiveFileFrontmatter: function (app: App, editor: Editor) {
     const file = app.workspace.getActiveFile();
     const text = editor.getDoc().getValue();
-    let body = text
+    let content = text;
+    if (file === null) {
+      return {frontmatter: null, content: ""}
+    }
+
+    const frontmatter:Record<string, string|number> = {}
+    const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
+    if (fmc && fmc !== undefined) {
+      const end = fmc.position.end.line + 1; // accont for ending ---
+      content = text.split("\n").slice(end).join("\n");
+      for (const key in fmc) {
+        if (Object.prototype.hasOwnProperty.call(fmc, key)) {
+          const item = fmc[key];
+          frontmatter[key] = item;
+        }
+      }
+      console.log("get frontmatter:", frontmatter);
+    }
+
+    return {
+      frontmatter,
+      content,
+    }
+  },
+
+  getActiveFileContent: async function (app: App, editor: Editor) {
+    const file = app.workspace.getActiveFile();
     if (file) {
       console.log("file", file.path)
-      const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
-      if (fmc) {
-        const end = fmc.position.end.line + 1 // accont for ending ---
-        body = text.split("\n").slice(end).join("\n")
-        console.log("fmc", fmc)
-      }
+      // const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
+      // if (fmc) {
+      //   const end = fmc.position.end.line + 1 // accont for ending ---
+      //   body = text.split("\n").slice(end).join("\n")
+      //   console.log("fmc", fmc)
+      // }
+
+      const { frontmatter: fmc, content } = this.getActiveFileFrontmatter(app, editor)
 
       const coverImagePath = fmc?.cover_image_url?.trim() || ""
 
-      const imgPathItems = this.getImagePaths(body);
+      const imgPathItems = this.getImagePaths(content);
       if (coverImagePath) {
         if (!coverImagePath.startsWith("https://") && !coverImagePath.startsWith("http://")) {
           imgPathItems.push(coverImagePath)
         }
       }
+
       const imgPathMap :Record<string, any> = {};
       for (let ix = 0; ix < imgPathItems.length; ix++) {
         // @TODO: this is a hack, but it works for now
@@ -98,7 +128,7 @@ export default {
 
       return {
         title,
-        content: body,
+        content,
         frontmatter: {
           title: fmc?.title || '',
           slug: fmc?.slug || '',

@@ -4,3 +4,11 @@ export interface QuailPluginSettings {
 	host: string;
 	listID: string;
 }
+
+export interface QuailImageItem {
+	pathname: string;
+	formalized_pathname: string;
+	name: string;
+	data: ArrayBuffer;
+	mimeType: string;
+}

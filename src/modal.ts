@@ -53,7 +53,24 @@ class PublishResultModal extends Modal {
 	}
 }
 
+class LoadingModal extends Modal {
+	constructor(app: App) {
+		super(app);
+	}
+
+	onOpen() {
+		const {contentEl} = this;
+		contentEl.innerHTML  = '<div><center><h2>Loading...</h2></center></div>'
+	}
+
+	onClose() {
+		const {contentEl} = this;
+		contentEl.empty();
+	}
+}
+
 export {
   MessageModal,
-	PublishResultModal
+	PublishResultModal,
+	LoadingModal,
 }
