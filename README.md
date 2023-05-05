@@ -6,6 +6,7 @@ This is a plugin for [Quail.ink](https://quail.ink).
 
 - [x] Publish/unpublish notes to Quail.ink
 - [x] Deliver published notes to subscribers
+- [x] Generate metadata for notes automatically
 
 ## Install manually
 
