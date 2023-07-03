@@ -4,49 +4,92 @@ import util from './util';
 import { QuailPluginSettings } from './interface';
 import fm from "./frontmatter";
 
+async function arrangeArticle(app: App, editor: Editor, client: any, settings: QuailPluginSettings) {
+  const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
+  if (err != null) {
+    new MessageModal(app, { message: err.toString() }).open();
+    return { frontmatter: null, content: null};
+  }
+
+  const { verified, reason } = fm.verifyFrontmatter(frontmatter)
+  if (!verified) {
+    new MessageModal(app, {title: "Failed to verify the metadata",  message: reason }).open();
+    return { frontmatter: null, content: null};
+  }
+
+  // upload images
+  const oldUrls:string[] = [];
+  const newUrls:string[] = [];
+  for (let ix = 0; ix < images.length; ix++) {
+    const img = images[ix];
+    if (img) {
+      const resp = await client.uploadAttachment(img);
+      oldUrls.push(img.pathname)
+      newUrls.push(resp.view_url)
+    }
+  }
+
+  // upload cover image
+  if (frontmatter?.cover_image) {
+    const resp = await client.uploadAttachment(frontmatter?.cover_image);
+    frontmatter.cover_image_url = resp.view_url;
+  }
+
+  // replace image urls
+  const newContent = util.replaceImageUrls(content, oldUrls, newUrls).trim() || '';
+  const fmt = fm.formalizeFrontmatter(frontmatter, newContent);
+
+  return {
+    title: title,
+    frontmatter: fmt,
+    content: newContent,
+  }
+}
+
+export async function savePost(app: App, editor: Editor, client: any, settings: QuailPluginSettings) {
+  const { title, frontmatter, content } = await arrangeArticle(app, editor, client, settings);
+
+  const payload = {
+    slug: frontmatter.slug,
+    title: frontmatter.title || title,
+    cover_image_url: frontmatter.cover_image_url,
+    summary: frontmatter.summary,
+    content: content,
+    tags: frontmatter.tags,
+  }
+
+  let resp:any = null;
+  try {
+    resp = await client.createPost(settings.listID, payload);
+  } catch (e) {
+    new ErrorModal(app, e).open();
+    return;
+  } finally {
+  }
+
+  return resp;
+}
+
 export function getActions(client: any, app: App, settings: QuailPluginSettings) {
   return [
   {
     id: 'quail-publish',
     name: 'Publish',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
-      if (err != null) {
-        new MessageModal(app, { message: err.toString() }).open();
-        return;
-      }
-
-      const { verified, reason } = fm.verifyFrontmatter(frontmatter)
-      if (!verified) {
-        new MessageModal(app, {title: "Failed to verify the metadata",  message: reason }).open();
-        return;
-      }
-
       const loadingModal = new LoadingModal(app)
       loadingModal.open();
 
-      // upload images and replace
-      const oldUrls:string[] = [];
-      const newUrls:string[] = [];
-      for (let ix = 0; ix < images.length; ix++) {
-        const img = images[ix];
-        if (img) {
-          const resp = await client.uploadAttachment(img);
-          oldUrls.push(img.pathname)
-          newUrls.push(resp.view_url)
-        }
-      }
-
-      if (frontmatter?.cover_image) {
-        const resp = await client.uploadAttachment(frontmatter?.cover_image);
-        frontmatter.cover_image_url = resp.view_url;
-      }
-
-      const newContent = util.replaceImageUrls(content, oldUrls, newUrls)
-
-      let resp:any = null;
+      let pt:any = null;
       try {
-        resp = await client.createOrPublish(settings.listID, title, newContent, frontmatter, images)
+        pt = await savePost(app, editor, client, settings);
+      } catch (e) {
+        new ErrorModal(app, e).open();
+        loadingModal.close();
+        return;
+      }
+
+      try {
+        pt = await client.publishPost(settings.listID, pt.slug);
       } catch (e) {
         new ErrorModal(app, e).open();
         loadingModal.close();
@@ -55,7 +98,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
         loadingModal.close();
       }
 
-      const slug = resp.slug;
+      const slug = pt.slug || '';
       if (slug) {
         const viewUrl = `${settings.host}/${settings.listID}/p/${slug}`;
         new PublishResultModal(app, client, settings.listID, slug, viewUrl).open();
@@ -80,7 +123,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
       loadingModal.open();
 
       try {
-        await client.unpublish(settings.listID, frontmatter?.slug);
+        await client.unpublishPost(settings.listID, frontmatter?.slug);
         new MessageModal(app, {
           title: "Unpublish",
           message: "This post has removed from published list."
@@ -90,6 +133,32 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
         new ErrorModal(app, e).open();
       } finally {
         loadingModal.close();
+      }
+    }
+  },
+
+  {
+    id: 'quail-save',
+    name: 'Save',
+    editorCallback: async (editor: Editor, view: MarkdownView) => {
+      const loadingModal = new LoadingModal(app)
+      loadingModal.open();
+
+      let pt:any = null;
+      try {
+        pt = await savePost(app, editor, client, settings);
+      } catch (e) {
+        new ErrorModal(app, e).open();
+        loadingModal.close();
+        return ;
+      } finally {
+        loadingModal.close();
+      }
+
+      const slug = pt.slug || '';
+      if (slug && pt.published_at != null) {
+        const viewUrl = `${settings.host}/${settings.listID}/p/${slug}`;
+        new PublishResultModal(app, client, settings.listID, slug, viewUrl).open();
       }
     }
   },
@@ -108,7 +177,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
       loadingModal.open();
 
       try {
-        await client.deliver(settings.listID, frontmatter?.slug)
+        await client.deliverPost(settings.listID, frontmatter?.slug)
         new MessageModal(app, {
           title: "Delivery Requested",
           message: "This post has been added into the delivery queue. It may take a few minutes to send out."

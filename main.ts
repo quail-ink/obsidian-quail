@@ -1,7 +1,7 @@
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { Client } from 'src/api';
 import { getActions } from './src/action';
 import { QuailPluginSettings } from './src/interface';
+import { Client } from 'quail-js';
 
 const DEFAULT_SETTINGS: QuailPluginSettings = {
 	apikey: '',
@@ -16,7 +16,11 @@ export default class QuailPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		const client = new Client(this.settings.apikey, this.settings.apibase);
+		const client = new Client({
+			apikey: this.settings.apikey,
+			apibase: this.settings.apibase,
+			debug: true,
+		});
 
 		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
 		const statusBarItemEl = this.addStatusBarItem();
