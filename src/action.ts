@@ -65,6 +65,7 @@ export async function savePost(app: App, editor: Editor, client: any, settings: 
     new ErrorModal(app, e).open();
     return;
   } finally {
+    //
   }
 
   return resp;
@@ -195,7 +196,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
 
   {
     id: 'quail-ai-gen-metadata',
-    name: 'AI Generate Metadata',
+    name: 'Generate Metadata (by AI)',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, content } = util.getActiveFileFrontmatter(app, editor);
       const file = app.workspace.getActiveFile();

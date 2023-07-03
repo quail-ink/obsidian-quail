@@ -75,7 +75,7 @@ class QuailSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Quail API Key')
-			.setDesc('Please grab your API key from https://quail.ink')
+			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys')
 			.addText(text => text
 				.setPlaceholder('Enter API Key')
 				.setValue(this.plugin.settings.apikey)
