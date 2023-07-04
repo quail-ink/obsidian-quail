@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-quail-plugin",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"description": "This is a quail (https://quail.ink) plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"scripts": {
