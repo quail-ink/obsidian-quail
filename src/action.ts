@@ -23,7 +23,10 @@ async function arrangeArticle(app: App, editor: Editor, client: any, settings: Q
   for (let ix = 0; ix < images.length; ix++) {
     const img = images[ix];
     if (img) {
-      const resp = await client.uploadAttachment(img);
+      const formData = new FormData();
+      const picArray = new Uint8Array(img.data).buffer;
+      formData.append('file', new Blob([picArray], { type: img.mimeType }), img.name);
+      const resp = await client.uploadAttachment(formData);
       oldUrls.push(img.pathname)
       newUrls.push(resp.view_url)
     }
