@@ -22,10 +22,6 @@ export default class QuailPlugin extends Plugin {
 			debug: true,
 		});
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
-
 		const actions = getActions(client, this.app, this.settings);
 		for (let ix = 0; ix < actions.length; ix++) {
 			const action:any = actions[ix];
@@ -71,7 +67,7 @@ class QuailSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for plugin of Quail.ink.'});
+		containerEl.createEl('h2', {text: 'General'});
 
 		new Setting(containerEl)
 			.setName('Quail API Key')
@@ -93,7 +89,7 @@ class QuailSettingTab extends PluginSettingTab {
 				this.plugin.settings.listID = value;
 				await this.plugin.saveSettings();
 			}));
-		containerEl.createEl('h2', {text: 'Advanced Settings'});
+		containerEl.createEl('h2', {text: 'Advanced'});
 		new Setting(containerEl)
 			.setName('Quail API Base')
 			.setDesc('You can change the base URL if you are using a self-hosted version of Quail')

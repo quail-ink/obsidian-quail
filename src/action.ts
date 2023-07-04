@@ -74,7 +74,7 @@ export async function savePost(app: App, editor: Editor, client: any, settings: 
 export function getActions(client: any, app: App, settings: QuailPluginSettings) {
   return [
   {
-    id: 'quail-publish',
+    id: 'publish',
     name: 'Publish',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const loadingModal = new LoadingModal(app)
@@ -94,7 +94,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
       } catch (e) {
         new ErrorModal(app, e).open();
         loadingModal.close();
-        return;
+        return;ErrorModal
       } finally {
         loadingModal.close();
       }
@@ -111,7 +111,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   },
 
   {
-    id: 'quail-unpublish',
+    id: 'unpublish',
     name: 'Unpublish',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, err } = await util.getActiveFileContent(app, editor);
@@ -139,7 +139,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   },
 
   {
-    id: 'quail-save',
+    id: 'save',
     name: 'Save',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const loadingModal = new LoadingModal(app)
@@ -165,7 +165,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   },
 
   {
-    id: 'quail-deliver',
+    id: 'deliver',
     name: 'Deliver',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, err } = await util.getActiveFileContent(app, editor);
@@ -195,7 +195,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   },
 
   {
-    id: 'quail-ai-gen-metadata',
+    id: 'ai-gen-metadata',
     name: 'Generate Metadata (by AI)',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, content } = util.getActiveFileFrontmatter(app, editor);
@@ -239,7 +239,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   },
 
   {
-    id: 'quail-insert-metadata',
+    id: 'insert-metadata',
     name: 'Insert Metadata Template',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter } = util.getActiveFileFrontmatter(app, editor);

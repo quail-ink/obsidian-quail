@@ -3,9 +3,8 @@
 	"name": "Quail",
 	"version": "1.0.7",
 	"minAppVersion": "1.0.0",
-	"description": "This is a quail plugin for Obsidian.",
+	"description": "Save, publish, delivery notes via Quail.ink as newsletters and blogs.",
 	"author": "Lyric",
 	"authorUrl": "https://quail.ink",
-	"fundingUrl": "https://quail.ink/lyric",
 	"isDesktopOnly": false
 }

@@ -1,5 +1,15 @@
 import { App, Modal } from 'obsidian';
 
+function constructModalTitle(title: string) {
+	const div = document.createElement('div');
+	const h2 = document.createElement('h2');
+	const center = document.createElement('center');
+	center.appendText(title);
+	h2.appendChild(center);
+	div.appendChild(h2);
+	return div;
+}
+
 class MessageModal extends Modal {
   message = '';
   title = '';
@@ -13,10 +23,13 @@ class MessageModal extends Modal {
 	onOpen() {
 		const {contentEl} = this;
 		const text = this.message.replace(/\n/g, '<br/>');
-		contentEl.innerHTML  = `<div>
-	<h2><center>${this.title}</center></h2>
-	<p><center>${text}</center></p>
-</div>`
+		const titleEl = constructModalTitle(this.title);
+		contentEl.appendChild(titleEl);
+
+		const p = document.createElement('p');
+		p.style.textAlign = 'center';
+		p.appendText(text);
+		contentEl.appendChild(p);
 	}
 
 	onClose() {
@@ -45,16 +58,29 @@ class PublishResultModal extends Modal {
 
 	onOpen() {
 		const {contentEl} = this;
-		contentEl.innerHTML  = `<div>
-	<h2><center>Your post has been published!</center></h2>
-	<p>
-		<center>The post has been published here: <a href="${this.url}" target="_blank">${this.url}</a></center>
-	</p>
-	<p>
-		<center><a href="${this.url}" target="_blank" style="text-decoration: none"><button>Visit</button></a></center>
-	</p>
-</div>
-		`;
+		const titleEl = constructModalTitle('Your post has been published!');
+		contentEl.appendChild(titleEl);
+
+		const p = document.createElement('p');
+		p.style.textAlign = 'center';
+		const a = document.createElement('a');
+		a.href = this.url;
+		a.target = '_blank';
+		a.appendText(this.url);
+		p.appendChild(a);
+		contentEl.appendChild(p);
+
+		const p2 = document.createElement('p');
+		p2.style.textAlign = 'center';
+		const a2 = document.createElement('a');
+		a2.href = this.url;
+		a2.target = '_blank';
+		a2.style.textDecoration = 'none';
+		const button = document.createElement('button');
+		button.appendText('Visit');
+		a2.appendChild(button);
+		p2.appendChild(a2);
+		contentEl.appendChild(p2);
 	}
 
 	onClose() {
@@ -70,7 +96,8 @@ class LoadingModal extends Modal {
 
 	onOpen() {
 		const {contentEl} = this;
-		contentEl.innerHTML  = '<div><center><h2>Loading...</h2></center></div>'
+		const titleEl = constructModalTitle('Loading...');
+		contentEl.appendChild(titleEl);
 	}
 
 	onClose() {
@@ -84,24 +111,31 @@ class ErrorModal extends Modal {
 
 	constructor(app: App, error: Error) {
 		super(app);
-    this.message = `
-<p>Error Message</p>
-<pre style="margin-bottom: 1rem;"><code style="
-	background: rgba(255, 100, 100, 0.2);
-	color: #e13838;
-	padding: 0.5rem 1rem;
-	border-radius: 2px;
-	border: 1px solid rgba(255,100,100,0.4);
-">${error.message}</code></pre>
-`;
+
+    this.message = error.message;
 	}
 
 	onOpen() {
 		const {contentEl} = this;
-		contentEl.innerHTML  = `<div>
-	<h2><center>Ooooops, something went wrong</center></h2>
-	<p><center>${this.message}</center></p>
-</div>`
+		const titleEl = constructModalTitle('Ooooops, something went wrong');
+		contentEl.appendChild(titleEl);
+
+		const p = document.createElement('p');
+		p.style.textAlign = 'center';
+		p.appendText("Error Message");
+
+		const pre = document.createElement('pre');
+		pre.style.marginBottom = '1rem';
+		const code = document.createElement('code');
+		code.style.background = 'rgba(255, 100, 100, 0.2)';
+		code.style.color = '#e13838';
+		code.style.padding = '0.5rem 1rem';
+		code.style.borderRadius = '2px';
+		code.style.border = '1px solid rgba(255,100,100,0.4)';
+		code.appendText(this.message);
+		pre.appendChild(code);
+		p.appendChild(pre);
+		contentEl.appendChild(p);
 	}
 
 	onClose() {
