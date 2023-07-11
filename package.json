@@ -18,8 +18,8 @@
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
 		"obsidian": "latest",
+		"quail-js": "0.1.34",
 		"tslib": "2.4.0",
-		"quail-js": "0.1.24",
 		"typescript": "4.7.4"
 	},
 	"dependencies": {

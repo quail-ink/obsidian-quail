@@ -1,8 +1,18 @@
-import { App, Editor, MarkdownView, Notice } from 'obsidian';
+import { App, Editor, MarkdownView } from 'obsidian';
 import { LoadingModal, MessageModal, ErrorModal, PublishResultModal } from './modal';
 import util from './util';
 import { QuailPluginSettings } from './interface';
 import fm from "./frontmatter";
+
+async function uploadAttachment(client: any, image: any) {
+  const formData = new FormData();
+  const picArray = new Uint8Array(image.data).buffer;
+
+  formData.append('file', new Blob([picArray], { type: image.mimeType }), image.name);
+
+  const resp = await client.uploadAttachment(formData);
+  return resp.view_url
+}
 
 async function arrangeArticle(app: App, editor: Editor, client: any, settings: QuailPluginSettings) {
   const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
@@ -23,19 +33,26 @@ async function arrangeArticle(app: App, editor: Editor, client: any, settings: Q
   for (let ix = 0; ix < images.length; ix++) {
     const img = images[ix];
     if (img) {
-      const formData = new FormData();
-      const picArray = new Uint8Array(img.data).buffer;
-      formData.append('file', new Blob([picArray], { type: img.mimeType }), img.name);
-      const resp = await client.uploadAttachment(formData);
-      oldUrls.push(img.pathname)
-      newUrls.push(resp.view_url)
+      try {
+        const viewUrl = await uploadAttachment(client, img)
+        newUrls.push(viewUrl)
+        oldUrls.push(img.pathname)
+      } catch (e) {
+        new ErrorModal(app, new Error(e)).open();
+        return { frontmatter: null, content: null};
+      }
     }
   }
 
   // upload cover image
   if (frontmatter?.cover_image) {
-    const resp = await client.uploadAttachment(frontmatter?.cover_image);
-    frontmatter.cover_image_url = resp.view_url;
+    try {
+      const viewUrl = await uploadAttachment(client, frontmatter.cover_image)
+      frontmatter.cover_image_url = viewUrl;
+    } catch (e) {
+      new ErrorModal(app, new Error(e)).open();
+      return { frontmatter: null, content: null};
+    }
   }
 
   // replace image urls
@@ -51,6 +68,10 @@ async function arrangeArticle(app: App, editor: Editor, client: any, settings: Q
 
 export async function savePost(app: App, editor: Editor, client: any, settings: QuailPluginSettings) {
   const { title, frontmatter, content } = await arrangeArticle(app, editor, client, settings);
+
+  if (frontmatter == null || content == null) {
+    return;
+  }
 
   const payload = {
     slug: frontmatter.slug,

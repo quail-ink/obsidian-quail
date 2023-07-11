@@ -126,12 +126,16 @@ class ErrorModal extends Modal {
 
 		const pre = document.createElement('pre');
 		pre.style.marginBottom = '1rem';
+		pre.style.background = 'rgba(255, 100, 100, 0.2)';
+		pre.style.padding = '0.5rem 1rem';
+		pre.style.borderRadius = '2px';
+		pre.style.border = '1px solid rgba(255,100,100,0.4)';
+		pre.style.whiteSpace = 'normal';
+		pre.style.wordBreak = 'break-word';
+
 		const code = document.createElement('code');
-		code.style.background = 'rgba(255, 100, 100, 0.2)';
 		code.style.color = '#e13838';
-		code.style.padding = '0.5rem 1rem';
-		code.style.borderRadius = '2px';
-		code.style.border = '1px solid rgba(255,100,100,0.4)';
+
 		code.appendText(this.message);
 		pre.appendChild(code);
 		p.appendChild(pre);

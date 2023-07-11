@@ -1,6 +1,4 @@
 import { App, Editor } from 'obsidian';
-// import { QuailImageItem } from './interface';
-import dayjs from "dayjs";
 
 export default {
   getImagePaths : function (markdownContent: string) {
@@ -164,5 +162,5 @@ export default {
       console.log("replace " + oldUrl + " with " + newUrls[ix]);
     }
     return content
-  }
+  },
 }
