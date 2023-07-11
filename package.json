@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-quail-plugin",
-	"version": "1.0.11",
+	"version": "1.0.12",
 	"description": "Save, publish, delivery notes via Quail.ink as newsletters and blogs. This is a quail (https://quail.ink) plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"scripts": {
