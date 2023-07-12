@@ -87,7 +87,7 @@ export default {
       const imgPathMap :Record<string, any> = {};
       for (let ix = 0; ix < imgPathItems.length; ix++) {
         // @TODO: this is a hack, but it works for now
-        const formalizedPathname = decodeURIComponent(imgPathItems[ix]).replace(/^\.\//, '')
+        const formalizedPathname = decodeURIComponent(imgPathItems[ix]).replace(/^(\.\/|\/)/, '');
         imgPathMap[formalizedPathname] = {
           pathname: imgPathItems[ix],
           formalizedPathname,
