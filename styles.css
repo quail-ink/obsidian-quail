@@ -6,3 +6,22 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+pre.error-message {
+  margin-bottom: 1rem;
+  background: rgba(255, 100, 100, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 2px;
+  border: 1px solid rgba(255,100,100,0.4);
+  white-space: normal;
+  word-break: break-word;
+}
+pre.error-message code {
+  color: #e13838;
+}
+.text-center {
+  text-align: center;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}

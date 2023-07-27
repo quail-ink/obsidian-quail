@@ -27,7 +27,7 @@ class MessageModal extends Modal {
 		contentEl.appendChild(titleEl);
 
 		const p = document.createElement('p');
-		p.style.textAlign = 'center';
+		p.className = 'text-center';
 		p.appendText(text);
 		contentEl.appendChild(p);
 	}
@@ -62,7 +62,7 @@ class PublishResultModal extends Modal {
 		contentEl.appendChild(titleEl);
 
 		const p = document.createElement('p');
-		p.style.textAlign = 'center';
+		p.className = 'text-center';
 		const a = document.createElement('a');
 		a.href = this.url;
 		a.target = '_blank';
@@ -71,11 +71,10 @@ class PublishResultModal extends Modal {
 		contentEl.appendChild(p);
 
 		const p2 = document.createElement('p');
-		p2.style.textAlign = 'center';
+		p2.className = 'text-center';
 		const a2 = document.createElement('a');
 		a2.href = this.url;
 		a2.target = '_blank';
-		a2.style.textDecoration = 'none';
 		const button = document.createElement('button');
 		button.appendText('Visit');
 		a2.appendChild(button);
@@ -121,20 +120,13 @@ class ErrorModal extends Modal {
 		contentEl.appendChild(titleEl);
 
 		const p = document.createElement('p');
-		p.style.textAlign = 'center';
+		p.className = 'text-center';
 		p.appendText("Error Message");
 
 		const pre = document.createElement('pre');
-		pre.style.marginBottom = '1rem';
-		pre.style.background = 'rgba(255, 100, 100, 0.2)';
-		pre.style.padding = '0.5rem 1rem';
-		pre.style.borderRadius = '2px';
-		pre.style.border = '1px solid rgba(255,100,100,0.4)';
-		pre.style.whiteSpace = 'normal';
-		pre.style.wordBreak = 'break-word';
+		pre.className = 'error-message';
 
 		const code = document.createElement('code');
-		code.style.color = '#e13838';
 
 		code.appendText(this.message);
 		pre.appendChild(code);

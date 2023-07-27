@@ -67,8 +67,6 @@ class QuailSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'General'});
-
 		new Setting(containerEl)
 			.setName('Quail API Key')
 			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys')
@@ -89,7 +87,7 @@ class QuailSettingTab extends PluginSettingTab {
 				this.plugin.settings.listID = value;
 				await this.plugin.saveSettings();
 			}));
-		containerEl.createEl('h2', {text: 'Advanced'});
+
 		new Setting(containerEl)
 			.setName('Quail API Base')
 			.setDesc('You can change the base URL if you are using a self-hosted version of Quail')
