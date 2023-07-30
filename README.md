@@ -13,7 +13,7 @@ This is a plugin for [Quail.ink](https://quail.ink).
 Clone the plugin.
 
 ```bash
-git clone git@github.com:lyricat/obsidian-quail.git
+git clone https://github.com/quail-ink/obsidian-quail.git
 cd obsidian-quail
 ```
 
