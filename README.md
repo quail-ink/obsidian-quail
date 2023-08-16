@@ -1,32 +1,21 @@
 # Obsidian Plugin for [Quail.ink](https://quail.ink)
 
-This is a plugin for [Quail.ink](https://quail.ink).
+This is a plugin for [Quail.ink](https://quail.ink), a publishing service, that allows you to publish your Obsidian notes to Quail.ink as newsletters or blog posts.
+
+## Getting Started
+
+Please refer to the [Quail.ink documentation](https://docs.quail.ink/writer/obsidian-plugin.html) for more information.
 
 ## Features
 
-- [x] Publish/unpublish notes to Quail.ink
-- [x] Deliver published notes to subscribers
-- [x] Generate metadata for notes automatically
+- [x] Publish/unpublish posts to https://quail.ink
+- [x] Deliver published posts to subscribers
+- [x] Generate metadata for posts automatically
 
-## Install manually
+## Installation
 
-Clone the plugin.
+Please refer to [INSTALL.md](INSTALL.md).
 
-```bash
-git clone https://github.com/quail-ink/obsidian-quail.git
-cd obsidian-quail
-```
+## License
 
-Build the plugin.
-
-```bash
-npm install
-npm run build
-```
-
-Copy the plugin to your vault.
-
-```
-mkdir $VAULT_PATH/.obsidian/plugins/obsidian-quail
-mv main.js styles.css manifest.json $VAULT_PATH/.obsidian/plugins/obsidian-quail
-```
+This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE) file for details
