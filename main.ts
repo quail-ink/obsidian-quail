@@ -19,13 +19,13 @@ export default class QuailPlugin extends Plugin {
 		const client = new Client({
 			apikey: this.settings.apikey,
 			apibase: this.settings.apibase,
-			debug: true,
+			debug: false,
 		});
 
 		const actions = getActions(client, this.app, this.settings);
 		for (let ix = 0; ix < actions.length; ix++) {
 			const action:any = actions[ix];
-			this.addCommand(action)
+			this.addCommand(action);
 		}
 
 		// This adds a settings tab so the user can configure various aspects of the plugin

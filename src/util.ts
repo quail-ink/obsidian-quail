@@ -1,4 +1,4 @@
-import { App, Editor } from 'obsidian';
+import { TFile, App, Editor } from 'obsidian';
 
 export default {
   getImagePaths : function (markdownContent: string) {
@@ -62,63 +62,78 @@ export default {
     }
   },
 
+  getCoverImage: function (path: string) {
+    const files = app.vault.getFiles();
+    for (let ix = 0; ix < files.length; ix++) {
+      const fd = files[ix];
+      if (fd.path === path) {
+        return fd;
+      }
+    }
+    return null;
+  },
+
+  getImageFiles: function (currentMd: TFile) {
+    const resolvedLinks = app.metadataCache.resolvedLinks;
+    const files:TFile[] = [];
+    for (const [mdFile, links] of Object.entries(resolvedLinks)) {
+      if (currentMd.path === mdFile) {
+        for (const [filePath, nr] of Object.entries(links)) {
+          const ext = filePath.split('.').pop()?.toLocaleLowerCase() || "";
+          if (this.getMimeType(ext) !== null) {
+            try {
+              const AttachFile: TFile =
+                app.vault.getAbstractFileByPath(filePath) as TFile;
+              if (AttachFile instanceof TFile) {
+                files.push(AttachFile);
+              }
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        }
+      }
+    }
+    return files;
+  },
+
   getActiveFileContent: async function (app: App, editor: Editor) {
     const file = app.workspace.getActiveFile();
     if (file) {
-      console.log("file", file.path)
-      // const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
-      // if (fmc) {
-      //   const end = fmc.position.end.line + 1 // accont for ending ---
-      //   body = text.split("\n").slice(end).join("\n")
-      //   console.log("fmc", fmc)
-      // }
+      console.log("currnet file", file.path)
 
       const { frontmatter: fmc, content } = this.getActiveFileFrontmatter(app, editor)
 
       const coverImagePath = fmc?.cover_image_url?.trim() || ""
 
-      const imgPathItems = this.getImagePaths(content);
-      if (coverImagePath) {
-        if (!coverImagePath.startsWith("https://") && !coverImagePath.startsWith("http://")) {
-          imgPathItems.push(coverImagePath)
-        }
-      }
+      const imgFiles = this.getImageFiles(file);
 
-      const imgPathMap :Record<string, any> = {};
-      for (let ix = 0; ix < imgPathItems.length; ix++) {
-        // @TODO: this is a hack, but it works for now
-        const formalizedPathname = decodeURIComponent(imgPathItems[ix]).replace(/^(\.\/|\/)/, '');
-        imgPathMap[formalizedPathname] = {
-          pathname: imgPathItems[ix],
-          formalizedPathname,
-        }
-      }
+      const coverFile = this.getCoverImage(coverImagePath);
+
+      imgFiles.push(coverFile);
 
       let coverImage:any = null;
-      const files = app.vault.getFiles();
       const images:Array<any> = [];
-      for (let ix = 0; ix < files.length; ix++) {
-        const fd = files[ix];
-        if (imgPathMap[fd.path]) {
+      for (let ix = 0; ix < imgFiles.length; ix++) {
+        const fd = imgFiles[ix];
+        if (fd) {
           const mimeType = this.getMimeType(fd.extension)
           if (mimeType === "") {
             continue;
           }
           const img = await app.vault.readBinary(fd)
           if (img.byteLength) {
-            console.log("found: " + fd.path + ", " + img.byteLength);
+            console.log(`found: ${fd.path}, size: ${img.byteLength}`);
             const imgWrapper = {
-              pathname: imgPathMap[fd.path].pathname,
-              formalizedPath: fd.path,
+              pathname: fd.path,
               name: fd.name,
               data: img,
               mimeType,
             }
-            if (imgPathMap[fd.path].pathname === coverImagePath) {
+            if (fd.path === coverImagePath) {
               coverImage = imgWrapper
-            } else {
-              images.push(imgWrapper);
             }
+            images.push(imgWrapper);
           }
         }
       }
@@ -155,12 +170,75 @@ export default {
       console.log("the number of old and new urls do not match, return original content");
       return content;
     }
+    const urlMap: any = {};
     for (let ix = 0; ix < oldUrls.length; ix++) {
       const oldUrl = oldUrls[ix];
-      const imageUrlPattern = new RegExp(`(!\\[[^\\]]*\\])\\(${oldUrl}\\)`, 'g');
-      content = content.replace(imageUrlPattern, `$1(${newUrls[ix]})`);
-      console.log("replace " + oldUrl + " with " + newUrls[ix]);
+      const newUrl = newUrls[ix];
+      urlMap[oldUrl] = {
+        used: false,
+        newUrl
+      };
     }
-    return content
+
+    const lines = content.split("\n").map((line) => line.trim());
+    const newLines = [];
+    const secondRoundLines = [];
+
+    // first round, replace ![alt](url) with ![alt](newUrl)
+    // and replace ![[path]] with ![name](newUrl)
+    for (let ix = 0; ix < lines.length; ix++) {
+      const line = lines[ix];
+      let newLine = line;
+      if (line.startsWith("![") && line.endsWith(")")) {
+        const match = line.match(/!\[(.*?)\]\((.*?)\)/);
+        if (match !== null && match.length > 1) {
+          const oldUrl = decodeURIComponent(match[2]);
+          if (urlMap[oldUrl]) {
+            newLine = line.replace(`(${match[2]})`, `(${urlMap[oldUrl].newUrl})`);
+            urlMap[oldUrl].used = true;
+          } else {
+            console.log("replaceImageUrls:ignore image", oldUrl)
+          }
+        }
+      } else if (line.startsWith("![[") && line.endsWith("]]")) {
+        const match = line.match(/!\[\[(.*?)\]\]/);
+        if (match !== null && match.length > 0) {
+          const oldUrl = decodeURIComponent(match[1]);
+          const name = oldUrl.split("/").pop();
+          if (urlMap[oldUrl]) {
+            newLine = line.replace(`![[${match[1]}]]`, `![${name || oldUrl}](${urlMap[oldUrl].newUrl})`);
+            urlMap[oldUrl].used = true;
+          } else {
+            secondRoundLines.push({line, index: ix});
+          }
+        }
+      }
+      newLines.push(newLine);
+    }
+
+    // second round, replace ![[name]] with ![name](newUrl)
+    // if it is a name, it could be duplicated, so we need to find the first unused one in the urlMap
+    for (let ix = 0; ix < secondRoundLines.length; ix++) {
+      const {index, line} = secondRoundLines[ix];
+      let newLine = line;
+      if (line.startsWith("![[") && line.endsWith("]]")) {
+        const match = line.match(/!\[\[(.*?)\]\]/);
+        if (match !== null && match.length > 0) {
+          const name = decodeURIComponent(match[1]);
+          let handled = false;
+          for (const k in urlMap) {
+            if (urlMap[k].used === false && k.endsWith(name)) {
+              newLine = line.replace(`![[${match[1]}]]`, `![${name}](${urlMap[k].newUrl})`);
+              handled = true;
+            }
+          }
+          if (!handled) {
+            console.log("replaceImageUrls:ignore image", name)
+          }
+        }
+      }
+      newLines[index] = newLine;
+    }
+    return newLines.join("\n");
   },
 }

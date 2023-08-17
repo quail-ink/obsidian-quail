@@ -37,6 +37,7 @@ async function arrangeArticle(app: App, editor: Editor, client: any, settings: Q
         const viewUrl = await uploadAttachment(client, img)
         newUrls.push(viewUrl)
         oldUrls.push(img.pathname)
+        console.log(`upload image: ${img.pathname}, new url: ${viewUrl}`)
       } catch (e) {
         new ErrorModal(app, new Error(e)).open();
         return { frontmatter: null, content: null};
@@ -49,6 +50,7 @@ async function arrangeArticle(app: App, editor: Editor, client: any, settings: Q
     try {
       const viewUrl = await uploadAttachment(client, frontmatter.cover_image)
       frontmatter.cover_image_url = viewUrl;
+      console.log(`upload cover: ${frontmatter.cover_image.pathname}, new url: ${viewUrl}`)
     } catch (e) {
       new ErrorModal(app, new Error(e)).open();
       return { frontmatter: null, content: null};
@@ -98,7 +100,7 @@ export async function savePost(app: App, editor: Editor, client: any, settings: 
 export function getActions(client: any, app: App, settings: QuailPluginSettings) {
   return [
   {
-    id: 'publish',
+    id: 'quail-publish',
     name: 'Publish',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const loadingModal = new LoadingModal(app)
@@ -220,7 +222,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
 
   {
     id: 'ai-gen-metadata',
-    name: 'Generate Metadata (by AI)',
+    name: 'Generate metadata by AI',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter, content } = util.getActiveFileFrontmatter(app, editor);
       const file = app.workspace.getActiveFile();
@@ -264,7 +266,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
 
   {
     id: 'insert-metadata',
-    name: 'Insert Metadata Template',
+    name: 'Insert metadata template',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
       const { frontmatter } = util.getActiveFileFrontmatter(app, editor);
       const file = app.workspace.getActiveFile();
@@ -282,5 +284,11 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     }
   },
 
+  // {
+  //   id: 'test',
+  //   name: "Test",
+  //   editorCallback: async (editor: Editor, view: MarkdownView) => {
+  //   }
+  // }
   ]
 }
