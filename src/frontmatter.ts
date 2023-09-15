@@ -74,6 +74,7 @@ cover_image_url: ""
           break;
           case "tags": {
             // tags is string, split by ','
+            console.log(typeof value, value.constructor.name);
             const re = /\s*([^\s,]+)\s*(?:,\s*|$)/g;
             if (typeof value === "string") {
               const trimed = value.trim();
@@ -86,6 +87,8 @@ cover_image_url: ""
               } else {
                 obj.validated = true;
               }
+            } else if (Array.isArray(value)) {
+              obj.validated = true;
             } else {
               obj.reason = '`tags` must be string';
             }
@@ -164,8 +167,23 @@ cover_image_url: ""
       ret.cover_image_url = frontmatter.cover_image_url?.trim() || "";
     }
 
-    if (frontmatter?.tags?.trim().length !== 0) {
-      ret.tags = frontmatter.tags?.trim() || "";
+    if (frontmatter?.tags.constructor.name === "Array") {
+      if (frontmatter?.tags.length !== 0) {
+        ret.tags = frontmatter.tags.join(",") || "";
+      }
+      const tags = frontmatter.tags.map((x:any) => {
+        if (typeof x === "string") {
+          return x.trim();
+        }
+        return "";
+      }).filter((x:any) => x.length !== 0);
+      ret.tags = tags.join(",") || "";
+    } else if (frontmatter?.tags.constructor.name === "String") {
+      if (frontmatter?.tags?.trim().length !== 0) {
+        ret.tags = frontmatter.tags?.trim() || "";
+      }
+    } else {
+      ret.tags = "";
     }
 
     if (frontmatter?.title?.trim().length !== 0) {
