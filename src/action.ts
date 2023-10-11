@@ -226,7 +226,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     id: 'ai-gen-metadata',
     name: 'Generate metadata by AI',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const { frontmatter, content } = util.getActiveFileFrontmatter(app, editor);
+      const { frontmatter, content, position } = util.getActiveFileFrontmatter(app, editor);
       const file = app.workspace.getActiveFile();
       if (file) {
         const loadingModal = new LoadingModal(app)
@@ -247,13 +247,11 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
           }
         } else {
           // @TODO replace frontmatter
-          console.log("replace frontmatter: ", frontmatter);
           try {
             fmc = await fm.suggestFrontmatter(client, title, content, []);
-            const pos = frontmatter.position;
             editor.setSelection(
-              { line: (pos.start?.line as number), ch: (pos.start?.col as number) },
-              { line: (pos.end?.line as number), ch: (frontmatter?.end?.col as number) })
+              { line: (position.start?.line as number), ch: (position.start?.col as number) },
+              { line: (position.end?.line as number), ch: (frontmatter?.end?.col as number) })
             editor.replaceSelection(fmc);
           } catch (e) {
             loadingModal.close();

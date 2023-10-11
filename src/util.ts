@@ -60,6 +60,7 @@ export default {
 
     return {
       frontmatter,
+      position: fmp,
       content,
     }
   },

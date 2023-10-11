@@ -69,7 +69,7 @@ class QuailSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Quail API Key')
-			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys')
+			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys. Restart Obsidian after you add or change the API key.')
 			.addText(text => text
 				.setPlaceholder('Enter API Key')
 				.setValue(this.plugin.settings.apikey)
