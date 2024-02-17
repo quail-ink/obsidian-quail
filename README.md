@@ -8,9 +8,9 @@ Please refer to the [Quail.ink documentation](https://docs.quail.ink/writer/obsi
 
 ## Features
 
-- [x] Publish/unpublish posts to https://quail.ink
-- [x] Deliver published posts to subscribers
-- [x] Generate metadata for posts automatically
+- Publish/unpublish posts to https://quail.ink
+- Deliver published posts to subscribers
+- Generate summary and tags by AI
 
 ## Installation
 
