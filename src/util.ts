@@ -55,7 +55,6 @@ export default {
           frontmatter[key] = item;
         }
       }
-      console.log("get frontmatter:", frontmatter);
     }
 
     return {
@@ -64,6 +63,26 @@ export default {
       content,
     }
   },
+
+  getActiveFileMarkdown: function (app: App, editor: Editor) {
+    const file = app.workspace.getActiveFile();
+    const text = editor.getDoc().getValue();
+    let content = text;
+    if (file === null) {
+      return ""
+    }
+
+    const fc = (app.metadataCache.getFileCache(file) as any)
+    const fmc = fc?.frontmatter;
+    const fmp = fc?.frontmatterPosition;
+    if (fmc && fmp && fmc !== undefined) {
+      const end = fmp.end.line + 1; // accont for ending ---
+      content = text.split("\n").slice(end).join("\n");
+    }
+
+    return content;
+  },
+
 
   getCoverImage: function (path: string) {
     const files = app.vault.getFiles();

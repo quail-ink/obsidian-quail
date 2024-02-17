@@ -77,12 +77,18 @@ export async function savePost(app: App, editor: Editor, client: any, settings: 
     return;
   }
 
+  let newContent = content;
+  if (!settings.strictLineBreaks) {
+    // \n -> \n\n
+    newContent = newContent.replace(/\n/g, '\n\n');
+  }
+
   const payload = {
     slug: frontmatter.slug,
     title: frontmatter.title || title,
     cover_image_url: frontmatter.cover_image_url,
     summary: frontmatter.summary,
-    content: content,
+    content: newContent,
     tags: frontmatter.tags,
   }
 
@@ -226,40 +232,34 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     id: 'ai-gen-metadata',
     name: 'Generate metadata by AI',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const { frontmatter, content, position } = util.getActiveFileFrontmatter(app, editor);
+      const content = await util.getActiveFileMarkdown(app, editor);
       const file = app.workspace.getActiveFile();
-      if (file) {
-        const loadingModal = new LoadingModal(app)
-        loadingModal.open();
 
+      if (file) {
         const title = file.name.replace(/\.md$/, '');
-        let fmc:any = null;
-        if (frontmatter === null || Object.values(frontmatter).length === 0) {
-          try {
-            fmc = await fm.suggestFrontmatter(client, title, content, [])
-            editor.setCursor({ line: 0, ch: 0 });
-            editor.replaceSelection(fmc);
-          } catch (e) {
-            loadingModal.close();
-            new ErrorModal(app, e).open();
-          } finally {
-            loadingModal.close();
-          }
-        } else {
-          // @TODO replace frontmatter
-          try {
-            fmc = await fm.suggestFrontmatter(client, title, content, []);
-            editor.setSelection(
-              { line: (position.start?.line as number), ch: (position.start?.col as number) },
-              { line: (position.end?.line as number), ch: (frontmatter?.end?.col as number) })
-            editor.replaceSelection(fmc);
-          } catch (e) {
-            loadingModal.close();
-            new ErrorModal(app, e).open();
-          } finally {
-            loadingModal.close();
+        const fmc:any = await fm.suggestFrontmatter(client, title, content, [])
+        const proc = (frontmatter: any) => {
+          if (file) {
+            const loadingModal = new LoadingModal(app)
+            loadingModal.open();
+            try {
+              for (const key in fmc) {
+                if (Object.prototype.hasOwnProperty.call(fmc, key)) {
+                  frontmatter[key] = fmc[key];
+                }
+              }
+              console.log("fmc: ", fmc);
+              console.log("frontmatter: ", frontmatter);
+            } catch (e) {
+              loadingModal.close();
+              new ErrorModal(app, e).open();
+            } finally {
+              loadingModal.close();
+            }
+            // }
           }
         }
+        app.fileManager.processFrontMatter(file, proc);
       }
     }
   },
@@ -268,27 +268,26 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
     id: 'insert-metadata',
     name: 'Insert metadata template',
     editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const { frontmatter } = util.getActiveFileFrontmatter(app, editor);
       const file = app.workspace.getActiveFile();
       if (file) {
-        if (frontmatter === null || Object.values(frontmatter).length === 0) {
-          editor.setCursor({ line: 0, ch: 0 });
-          const fmc = await fm.emptyFrontmatter()
-          editor.replaceSelection(fmc);
-        } else {
-          console.log("current frontmatter: ", frontmatter)
-          const modal = new MessageModal(app, { title: "Metadata already exists", message: "Please edit manually or use AI to generate it" })
-          modal.open();
+
+        const proc = (frontmatter: any) => {
+          if (frontmatter === null || Object.values(frontmatter).length === 0) {
+            const fmc:any = fm.emptyFrontmatter()
+            for (const key in fmc) {
+              if (Object.prototype.hasOwnProperty.call(fmc, key)) {
+                frontmatter[key] = fmc[key];
+              }
+            }
+          } else {
+            const modal = new MessageModal(app, { title: "Metadata already exists", message: "Please edit manually or use AI to generate it" })
+            modal.open();
+          }
         }
+
+        app.fileManager.processFrontMatter(file, proc);
       }
     }
   },
-
-  // {
-  //   id: 'test',
-  //   name: "Test",
-  //   editorCallback: async (editor: Editor, view: MarkdownView) => {
-  //   }
-  // }
   ]
 }

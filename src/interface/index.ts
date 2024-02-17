@@ -3,6 +3,8 @@ export interface QuailPluginSettings {
 	apibase: string;
 	host: string;
 	listID: string;
+
+	strictLineBreaks: boolean;
 }
 
 export interface QuailImageItem {

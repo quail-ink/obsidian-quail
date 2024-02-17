@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, SettingTab } from 'obsidian';
 import { getActions } from './src/action';
 import { QuailPluginSettings } from './src/interface';
 import { Client } from 'quail-js';
@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS: QuailPluginSettings = {
 	apibase: 'https://api.quail.ink',
 	host: 'https://quail.ink',
 	listID: '',
+	strictLineBreaks: true,
 }
 
 export default class QuailPlugin extends Plugin {
@@ -67,8 +68,10 @@ class QuailSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		containerEl.createEl("h6", { text: "API and connections settings" });
+
 		new Setting(containerEl)
-			.setName('Quail API Key')
+			.setName('Quail API key')
 			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys. Restart Obsidian after you add or change the API key.')
 			.addText(text => text
 				.setPlaceholder('Enter API Key')
@@ -78,18 +81,18 @@ class QuailSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-		.setName('List ID or slug')
-		.setDesc('Your list ID or slug. You can find it in the URL of your list page. For example, if your list URL is https://quail.ink/my-list, your list ID or slug is "my-list".')
-		.addText(text => text
-			.setPlaceholder('Enter List ID or slug')
-			.setValue(this.plugin.settings.listID)
-			.onChange(async (value) => {
-				this.plugin.settings.listID = value;
-				await this.plugin.saveSettings();
-			}));
+			.setName('List ID or slug')
+			.setDesc('Your list ID or slug. You can find it in the URL of your list page. For example, if your list URL is https://quail.ink/my-list, your list ID or slug is "my-list".')
+			.addText(text => text
+				.setPlaceholder('Enter List ID or slug')
+				.setValue(this.plugin.settings.listID)
+				.onChange(async (value) => {
+					this.plugin.settings.listID = value;
+					await this.plugin.saveSettings();
+				}));
 
 		new Setting(containerEl)
-			.setName('Quail API Base')
+			.setName('Quail API base')
 			.setDesc('You can change the base URL if you are using a self-hosted version of Quail')
 			.addText(text => text
 				.setPlaceholder('Enter API Base')
@@ -99,13 +102,25 @@ class QuailSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('Quail Host')
+			.setName('Quail host')
 			.setDesc('You can change the host URL if you are using a self-hosted version of Quail')
 			.addText(text => text
 				.setPlaceholder('Enter Host')
 				.setValue(this.plugin.settings.host)
 				.onChange(async (value) => {
 					this.plugin.settings.host = value;
+					await this.plugin.saveSettings();
+				}));
+
+		containerEl.createEl("h6", { text: "Editor" });
+
+		new Setting(containerEl)
+			.setName('Strict line breaks')
+			.setDesc('Markdown specs ignore single line breaks. If you want to keep them, enable this option.')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.strictLineBreaks)
+				.onChange(async (value) => {
+					this.plugin.settings.strictLineBreaks = value;
 					await this.plugin.saveSettings();
 				}));
 	}
