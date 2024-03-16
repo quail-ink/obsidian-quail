@@ -156,12 +156,7 @@ export default {
       ret.datetime = dayjs().format('YYYY-MM-DDTHH:mm:ssZ');
     }
 
-    if (frontmatter?.summary?.trim().length !== 0) {
-      ret.summary = frontmatter.summary?.trim().slice(0, 120) || text.trim().slice(0, 120);
-    } else {
-      // the first 120 characters of the text
-      ret.summary = text.trim().slice(0, 120);
-    }
+    ret.summary = frontmatter.summary?.trim() || ''
 
     if (frontmatter?.cover_image_url?.trim().length !== 0) {
       ret.cover_image_url = frontmatter.cover_image_url?.trim() || "";

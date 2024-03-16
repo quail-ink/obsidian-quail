@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView } from 'obsidian';
+import { App } from 'obsidian';
 import { LoadingModal, MessageModal, ErrorModal, PublishResultModal } from './modal';
 import util from './util';
 import { QuailPluginSettings } from './interface';
@@ -14,8 +14,8 @@ async function uploadAttachment(client: any, image: any) {
   return resp.view_url
 }
 
-async function arrangeArticle(app: App, editor: Editor, client: any, settings: QuailPluginSettings) {
-  const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app, editor);
+async function arrangeArticle(app: App, client: any, settings: QuailPluginSettings) {
+  const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app);
   if (err != null) {
     new MessageModal(app, { message: err.toString() }).open();
     return { frontmatter: null, content: null};
@@ -70,11 +70,54 @@ async function arrangeArticle(app: App, editor: Editor, client: any, settings: Q
   }
 }
 
-export async function savePost(app: App, editor: Editor, client: any, settings: QuailPluginSettings) {
-  const { title, frontmatter, content } = await arrangeArticle(app, editor, client, settings);
+export async function savePost(app: App, client: any, settings: QuailPluginSettings) {
+  const { title, frontmatter, content } = await arrangeArticle(app, client, settings);
 
-  if (frontmatter == null || content == null) {
+  if (content == null || title == null) {
     return;
+  }
+
+  const checkMetadata = (fm: any) => {
+    const fields = ['slug', 'summary', 'tags'];
+    for (let i = 0; i < fields.length; i++) {
+      if (fm[fields[i]] === '' || fm[fields[i]] === null || fm[fields[i]] === undefined) {
+        return false;
+      }
+    }
+    return true
+  }
+
+  if (!checkMetadata(frontmatter)) {
+    console.log("some metadata is empty, try to generate it by AI")
+    const file = app.workspace.getActiveFile();
+    if (file) {
+      // try to generate metadata
+      const fmc:any = await fm.suggestFrontmatter(client, title, content, [])
+      const proc = (frontmatter:any) => {
+        if (file) {
+          const loadingModal = new LoadingModal(app)
+          loadingModal.open();
+          try {
+            for (const key in fmc) {
+              if (Object.prototype.hasOwnProperty.call(fmc, key)) {
+                if (frontmatter[key] === '' || frontmatter[key] === null || frontmatter[key] === undefined) {
+                  console.log(`update metadata: ${key} = ${fmc[key]}`)
+                  frontmatter[key] = fmc[key];
+                }
+              }
+            }
+          } catch (e) {
+            loadingModal.close();
+            new ErrorModal(app, e).open();
+          } finally {
+            loadingModal.close();
+          }
+        }
+      }
+      app.fileManager.processFrontMatter(file, proc);
+    } else {
+      return ;
+    }
   }
 
   let newContent = content;
@@ -110,45 +153,51 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   {
     id: 'quail-publish',
     name: 'Publish',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const loadingModal = new LoadingModal(app)
-      loadingModal.open();
+    callback: async () => {
+      const file = app.workspace.getActiveFile();
+      if (file !== null) {
+        const loadingModal = new LoadingModal(app)
+        loadingModal.open();
 
-      let pt:any = null;
-      try {
-        pt = await savePost(app, editor, client, settings);
-      } catch (e) {
-        new ErrorModal(app, e).open();
-        loadingModal.close();
+        let pt:any = null;
+        try {
+          pt = await savePost(app, client, settings);
+        } catch (e) {
+          new ErrorModal(app, e).open();
+          loadingModal.close();
+          return;
+        }
+
+        try {
+          pt = await client.publishPost(settings.listID, pt.slug);
+        } catch (e) {
+          new ErrorModal(app, e).open();
+          loadingModal.close();
+          return;
+        } finally {
+          loadingModal.close();
+        }
+
+        const slug = pt.slug || '';
+        if (slug) {
+          const viewUrl = `${settings.host}/${settings.listID}/p/${slug}`;
+          new PublishResultModal(app, client, settings.listID, slug, viewUrl).open();
+        } else {
+          new MessageModal(app, { message: "resp.slug is empty." }).open();
+        }
+
         return;
       }
 
-      try {
-        pt = await client.publishPost(settings.listID, pt.slug);
-      } catch (e) {
-        new ErrorModal(app, e).open();
-        loadingModal.close();
-        return;ErrorModal
-      } finally {
-        loadingModal.close();
-      }
-
-      const slug = pt.slug || '';
-      if (slug) {
-        const viewUrl = `${settings.host}/${settings.listID}/p/${slug}`;
-        new PublishResultModal(app, client, settings.listID, slug, viewUrl).open();
-      } else {
-        new MessageModal(app, { message: "resp.slug is empty." }).open();
-        return;
-      }
+      return;
     }
   },
 
   {
     id: 'unpublish',
     name: 'Unpublish',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const { frontmatter, err } = await util.getActiveFileContent(app, editor);
+    callback: async () => {
+      const { frontmatter, err } = await util.getActiveFileContent(app);
       if (err != null) {
         new ErrorModal(app, new Error(err)).open();
         return;
@@ -158,7 +207,8 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
       loadingModal.open();
 
       try {
-        await client.unpublishPost(settings.listID, frontmatter?.slug);
+        // await client.unpublishPost(settings.listID, frontmatter?.slug);
+        console.log("unpublish: ", frontmatter?.slug)
         new MessageModal(app, {
           title: "Unpublish",
           message: "This post has removed from published list."
@@ -175,13 +225,13 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   {
     id: 'save',
     name: 'Save',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
+    callback: async () => {
       const loadingModal = new LoadingModal(app)
       loadingModal.open();
 
       let pt:any = null;
       try {
-        pt = await savePost(app, editor, client, settings);
+        pt = await savePost(app, client, settings);
       } catch (e) {
         new ErrorModal(app, e).open();
         loadingModal.close();
@@ -201,8 +251,8 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   {
     id: 'deliver',
     name: 'Deliver',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const { frontmatter, err } = await util.getActiveFileContent(app, editor);
+    callback: async () => {
+      const { frontmatter, err } = await util.getActiveFileContent(app);
       if (err != null) {
         new MessageModal(app, { message: err.toString() }).open();
         return;
@@ -231,8 +281,8 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   {
     id: 'ai-gen-metadata',
     name: 'Generate metadata by AI',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
-      const content = await util.getActiveFileMarkdown(app, editor);
+    callback: async () => {
+      const content = await util.getActiveFileMarkdown(app);
       const file = app.workspace.getActiveFile();
 
       if (file) {
@@ -248,15 +298,12 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
                   frontmatter[key] = fmc[key];
                 }
               }
-              console.log("fmc: ", fmc);
-              console.log("frontmatter: ", frontmatter);
             } catch (e) {
               loadingModal.close();
               new ErrorModal(app, e).open();
             } finally {
               loadingModal.close();
             }
-            // }
           }
         }
         app.fileManager.processFrontMatter(file, proc);
@@ -267,7 +314,7 @@ export function getActions(client: any, app: App, settings: QuailPluginSettings)
   {
     id: 'insert-metadata',
     name: 'Insert metadata template',
-    editorCallback: async (editor: Editor, view: MarkdownView) => {
+    callback: async () => {
       const file = app.workspace.getActiveFile();
       if (file) {
 

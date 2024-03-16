@@ -8,6 +8,8 @@ Please refer to the [Quail.ink documentation](https://docs.quail.ink/writer/obsi
 
 ## Features
 
+Use `Ctrl/Cmd + P` to open the command palette and search for `Quail` to see all available commands.
+
 - Publish/unpublish posts to https://quail.ink
 - Deliver published posts to subscribers
 - Generate summary and tags by AI

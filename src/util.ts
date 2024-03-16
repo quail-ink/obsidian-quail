@@ -1,4 +1,4 @@
-import { TFile, App, Editor } from 'obsidian';
+import { TFile, App } from 'obsidian';
 
 export default {
   getImagePaths : function (markdownContent: string) {
@@ -34,13 +34,15 @@ export default {
     return mimeType;
   },
 
-  getActiveFileFrontmatter: function (app: App, editor: Editor) {
+  getActiveFileFrontmatter: async function (app: App) {
     const file = app.workspace.getActiveFile();
-    const text = editor.getDoc().getValue();
-    let content = text;
+
     if (file === null) {
       return {frontmatter: null, content: ""}
     }
+
+    const text = await app.vault.cachedRead(file);
+    let content = text;
 
     const frontmatter:Record<string, any> = {}
     const fc = (app.metadataCache.getFileCache(file) as any)
@@ -64,13 +66,14 @@ export default {
     }
   },
 
-  getActiveFileMarkdown: function (app: App, editor: Editor) {
+  getActiveFileMarkdown: async function (app: App) {
     const file = app.workspace.getActiveFile();
-    const text = editor.getDoc().getValue();
-    let content = text;
     if (file === null) {
       return ""
     }
+
+    const text = await app.vault.cachedRead(file);
+    let content = text;
 
     const fc = (app.metadataCache.getFileCache(file) as any)
     const fmc = fc?.frontmatter;
@@ -119,12 +122,12 @@ export default {
     return files;
   },
 
-  getActiveFileContent: async function (app: App, editor: Editor) {
+  getActiveFileContent: async function (app: App) {
     const file = app.workspace.getActiveFile();
     if (file) {
-      console.log("currnet file", file.path)
+      // console.log("currnet file", file.path)
 
-      const { frontmatter: fmc, content } = this.getActiveFileFrontmatter(app, editor)
+      const { frontmatter: fmc, content } = await this.getActiveFileFrontmatter(app)
 
       const coverImagePath = fmc?.cover_image_url?.trim() || ""
 
