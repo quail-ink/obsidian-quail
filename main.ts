@@ -71,7 +71,7 @@ class QuailSettingTab extends PluginSettingTab {
 		containerEl.createEl("h6", { text: "API and connections settings" });
 
 		new Setting(containerEl)
-			.setName('Quail API key')
+			.setName('Quail API key (required)')
 			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys. Restart Obsidian after you add or change the API key.')
 			.addText(text => text
 				.setPlaceholder('Enter API Key')
@@ -81,7 +81,7 @@ class QuailSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('List ID or slug')
+			.setName('List ID or slug (required)')
 			.setDesc('Your list ID or slug. You can find it in the URL of your list page. For example, if your list URL is https://quail.ink/my-list, your list ID or slug is "my-list".')
 			.addText(text => text
 				.setPlaceholder('Enter List ID or slug')
@@ -92,7 +92,7 @@ class QuailSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Quail API base')
+			.setName('Quail API base (required)')
 			.setDesc('You can change the base URL if you are using a self-hosted version of Quail')
 			.addText(text => text
 				.setPlaceholder('Enter API Base')
@@ -102,7 +102,7 @@ class QuailSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 		new Setting(containerEl)
-			.setName('Quail host')
+			.setName('Quail host (required)')
 			.setDesc('You can change the host URL if you are using a self-hosted version of Quail')
 			.addText(text => text
 				.setPlaceholder('Enter Host')
