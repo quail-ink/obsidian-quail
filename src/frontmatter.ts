@@ -33,8 +33,21 @@ export default {
       "datetime": `${now.format("YYYY-MM-DD HH:mm")}`,
       "summary": "INSERT_YOUR_SUMMARY_HERE",
       "tags": "INSERT_YOUR_TAGS_HERE",
+      "theme": "light",
       "cover_image_url": "",
     }
+  },
+
+  replaceFields: function (frontmatter: Record<string, any>): Record<string, any> {
+    // possible transformation
+    // - summary: description, subtitle
+    // - datetime: date
+    const ret :Record<string, any> = Object.assign({}, frontmatter);
+    const now = dayjs().format('YYYY-MM-DDTHH:mm:ssZ');
+    ret.summary = frontmatter.summary || frontmatter.description || frontmatter.subtitle || '';
+    ret.datetime = frontmatter.date || now;
+    ret.cover_image_url = frontmatter.cover || '';
+    return ret
   },
 
   verifyFrontmatter: function (frontmatter: Record<string, any>): { verified: boolean, reason: string } {

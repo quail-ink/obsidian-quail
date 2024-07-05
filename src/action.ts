@@ -15,11 +15,13 @@ async function uploadAttachment(client: any, image: any) {
 }
 
 async function arrangeArticle(app: App, client: any, settings: QuailPluginSettings) {
-  const { title, content, frontmatter, images, err } = await util.getActiveFileContent(app);
+  const { title, content, frontmatter: frontmatterO, images, err } = await util.getActiveFileContent(app);
   if (err != null) {
     new MessageModal(app, { message: err.toString() }).open();
     return { frontmatter: null, content: null};
   }
+
+  const frontmatter = fm.replaceFields(frontmatterO);
 
   const { verified, reason } = fm.verifyFrontmatter(frontmatter)
   if (!verified) {
@@ -133,6 +135,7 @@ export async function savePost(app: App, client: any, settings: QuailPluginSetti
     summary: frontmatter.summary,
     content: newContent,
     tags: frontmatter.tags,
+    theme: frontmatter.theme,
   }
 
   let resp:any = null;
