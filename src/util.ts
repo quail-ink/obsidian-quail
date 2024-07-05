@@ -87,7 +87,7 @@ export default {
   },
 
 
-  getCoverImage: function (path: string) {
+  getCoverImage: function (app:App, path: string) {
     const files = app.vault.getFiles();
     for (let ix = 0; ix < files.length; ix++) {
       const fd = files[ix];
@@ -98,7 +98,7 @@ export default {
     return null;
   },
 
-  getImageFiles: function (currentMd: TFile) {
+  getImageFiles: function (app:App, currentMd: TFile) {
     const resolvedLinks = app.metadataCache.resolvedLinks;
     const files:TFile[] = [];
     for (const [mdFile, links] of Object.entries(resolvedLinks)) {
@@ -131,9 +131,9 @@ export default {
 
       const coverImagePath = fmc?.cover_image_url?.trim() || ""
 
-      const imgFiles = this.getImageFiles(file);
+      const imgFiles = this.getImageFiles(app, file);
 
-      const coverFile = this.getCoverImage(coverImagePath);
+      const coverFile = this.getCoverImage(app, coverImagePath);
 
       imgFiles.push(coverFile);
 
