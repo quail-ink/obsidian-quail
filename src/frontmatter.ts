@@ -45,8 +45,8 @@ export default {
     const ret :Record<string, any> = Object.assign({}, frontmatter);
     const now = dayjs().format('YYYY-MM-DDTHH:mm:ssZ');
     ret.summary = frontmatter.summary || frontmatter.description || frontmatter.subtitle || '';
-    ret.datetime = frontmatter.date || now;
-    ret.cover_image_url = frontmatter.cover || '';
+    ret.datetime = frontmatter.datetime || frontmatter.date || now;
+    ret.cover_image_url = frontmatter.cover_image_url || frontmatter.cover || '';
     return ret
   },
 

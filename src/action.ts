@@ -74,7 +74,6 @@ async function arrangeArticle(app: App, client: any, settings: QuailPluginSettin
 
 export async function savePost(app: App, client: any, settings: QuailPluginSettings) {
   const { title, frontmatter, content } = await arrangeArticle(app, client, settings);
-
   if (content == null || title == null) {
     return;
   }
@@ -136,6 +135,7 @@ export async function savePost(app: App, client: any, settings: QuailPluginSetti
     content: newContent,
     tags: frontmatter.tags,
     theme: frontmatter.theme,
+    first_published_at: frontmatter.datetime,
   }
 
   let resp:any = null;
