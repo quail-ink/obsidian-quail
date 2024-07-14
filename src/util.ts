@@ -205,7 +205,7 @@ export default {
       };
     }
 
-    const lines = content.split("\n").map((line) => line.trim());
+    const lines = content.split("\n");
     const newLines = [];
     const secondRoundLines = [];
 
