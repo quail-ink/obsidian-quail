@@ -66,10 +66,10 @@ export default {
           case "slug":
             // slug is number, english, dash
             if (typeof value === "string") {
-              if (/^[a-zA-Z0-9-]+$/.test(value)) {
+              if (/^[a-zA-Z0-9-_]+$/.test(value)) {
                 obj.validated = true;
               } else {
-                obj.reason = '`slug` can only contain english, number and dash';
+                obj.reason = '`slug` can only contain english, number, dash and underline';
               }
             } else {
               obj.reason = '`slug` must be string';
