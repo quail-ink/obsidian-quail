@@ -6,7 +6,7 @@ import { Client } from 'quail-js';
 const DEFAULT_SETTINGS: QuailPluginSettings = {
 	apikey: '',
 	apibase: 'https://api.quail.ink',
-	host: 'https://quail.ink',
+	host: 'https://quaily.com',
 	listID: '',
 	strictLineBreaks: true,
 }
@@ -72,7 +72,7 @@ class QuailSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Quail API key (required)')
-			.setDesc('Please grab your API key from https://quail.ink/profile/apikeys. Restart Obsidian after you add or change the API key.')
+			.setDesc('Please grab your API key from https://quaily.com/profile/apikeys. Restart Obsidian after you add or change the API key.')
 			.addText(text => text
 				.setPlaceholder('Enter API Key')
 				.setValue(this.plugin.settings.apikey)
@@ -82,7 +82,7 @@ class QuailSettingTab extends PluginSettingTab {
 				}));
 		new Setting(containerEl)
 			.setName('List ID or slug (required)')
-			.setDesc('Your list ID or slug. You can find it in the URL of your list page. For example, if your list URL is https://quail.ink/my-list, your list ID or slug is "my-list".')
+			.setDesc('Your list ID or slug. You can find it in the URL of your list page. For example, if your list URL is https://quaily.com/my-list, your list ID or slug is "my-list".')
 			.addText(text => text
 				.setPlaceholder('Enter List ID or slug')
 				.setValue(this.plugin.settings.listID)

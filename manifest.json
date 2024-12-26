@@ -3,8 +3,8 @@
 	"name": "Quail",
 	"version": "1.1.6",
 	"minAppVersion": "1.0.0",
-	"description": "Save, publish, delivery notes via Quail.ink as newsletters and blogs.",
+	"description": "Save, publish, delivery notes via Quaily.com as newsletters and blogs.",
 	"author": "Lyric",
-	"authorUrl": "https://quail.ink",
+	"authorUrl": "https://quaily.com",
 	"isDesktopOnly": false
 }
